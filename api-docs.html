@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Backend API Documentation</title>
+    <style>
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+          Arial, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f9f9f9;
+      }
+      h1 {
+        color: #2c3e50;
+        border-bottom: 2px solid #3498db;
+        padding-bottom: 10px;
+        margin-bottom: 30px;
+      }
+      h2 {
+        color: #2980b9;
+        margin-top: 40px;
+      }
+      .endpoint {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 25px;
+        margin-bottom: 30px;
+      }
+      .method {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-weight: bold;
+        color: white;
+        margin-right: 10px;
+      }
+      .post {
+        background-color: #27ae60;
+      }
+      .get {
+        background-color: #3498db;
+      }
+      .url {
+        font-family: monospace;
+        font-size: 1.1em;
+        color: #e74c3c;
+        font-weight: bold;
+      }
+      pre {
+        background-color: #eee;
+        padding: 15px;
+        border-radius: 5px;
+        overflow-x: auto;
+        font-family: "Courier New", Courier, monospace;
+      }
+      .description {
+        font-style: italic;
+        color: #666;
+        margin-bottom: 15px;
+        border-left: 3px solid #ccc;
+        padding-left: 10px;
+      }
+      .footer {
+        text-align: center;
+        margin-top: 50px;
+        font-size: 0.9em;
+        color: #7f8c8d;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Backend API Documentation</h1>
+    <p>
+      This document details the public external API structure required to
+      integrate the frontend with the Node/Express backend.
+    </p>
+
+    <h2>1. General Status Endpoints</h2>
+
+    <div class="endpoint">
+      <h3>
+        <span class="method get">GET</span><span class="url">/api/status</span>
+      </h3>
+      <p class="description">
+        Test route used to verify if the frontend successfully connected to the
+        backend.
+      </p>
+
+      <h4>Expected Response (200 OK)</h4>
+      <pre>
+{
+  "status": "ok",
+  "message": "Backend is connected to Frontend!"
+}
+        </pre
+      >
+    </div>
+
+    <h2>2. Authentication Endpoints</h2>
+
+    <div class="endpoint">
+      <h3>
+        <span class="method post">POST</span
+        ><span class="url">/api/auth/register</span>
+      </h3>
+      <p class="description">
+        Registers a new Student or Faculty member. Admin registration is
+        restricted.
+      </p>
+
+      <h4>Request Payload (Student)</h4>
+      <pre>
+{
+  "name": "Jane Doe",
+  "email": "jane@example.com",
+  "password": "securepassword123",
+  "role": "student",
+  "department": "Computer Science",
+  "rollNumber": "CS2026001"
+}
+        </pre
+      >
+
+      <h4>Request Payload (Faculty)</h4>
+      <pre>
+{
+  "name": "Dr. John Smith",
+  "email": "john.smith@example.com",
+  "password": "securepassword123",
+  "role": "faculty",
+  "department": "Computer Science"
+}
+        </pre
+      >
+
+      <h4>Expected Responses</h4>
+      <p><strong>201 Created</strong></p>
+      <pre>
+{
+  "message": "Registration successful",
+  "token": "eyJhbGciOiJIUzI1NiIsIn...",
+  "user": {
+    "id": "60b...123",
+    "name": "Jane Doe",
+    "email": "jane@example.com",
+    "role": "student"
+  }
+}
+        </pre
+      >
+      <p>
+        <strong>400 Bad Request</strong> if the role is admin, or duplicate
+        email/rollNumber found.
+      </p>
+    </div>
+
+    <div class="endpoint">
+      <h3>
+        <span class="method post">POST</span
+        ><span class="url">/api/auth/login</span>
+      </h3>
+      <p class="description">
+        Authenticates users (Admin, Faculty, and Student) using email and
+        password, returning a JWT token.
+      </p>
+
+      <h4>Request Payload</h4>
+      <pre>
+{
+  "email": "jane@example.com",
+  "password": "securepassword123",
+  "role": "student" // Can be "admin", "faculty", or "student"
+}
+        </pre
+      >
+
+      <h4>Expected Responses</h4>
+      <p><strong>200 OK</strong></p>
+      <pre>
+{
+  "token": "eyJhbGciOiJIUzI1NiIsIn...",
+  "user": {
+    "id": "60b...123",
+    "name": "Jane Doe",
+    "email": "jane@example.com",
+    "role": "student"
+  }
+}
+        </pre
+      >
+      <p><strong>400 Bad Request</strong> if invalid credentials or role.</p>
+      <p><strong>404 Not Found</strong> if user file not found.</p>
+    </div>
+
+    <div class="footer">&copy; 2026 Student Project Management System</div>
+  </body>
+</html>
