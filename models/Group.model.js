@@ -3,21 +3,27 @@ import mongoose from "mongoose";
 const groupSchema = new mongoose.Schema(
   {
     groupID: {
-      type: String, // Changed from 'id' to 'groupID' to avoid conflict with default _id, but sending 'id' in toJSON might be better. Let's keep it simple 'id' in frontend mapped to 'groupID' here or just 'id'.
+      type: String,
       required: true,
-      unique: true,
+      unique: true, // e.g. "G-2024-001"
     },
     project: {
-      type: String,
+      // Changed from String → ObjectId ref to Project
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Project",
       required: true,
     },
     students: [
       {
-        type: String,
+        // Changed from String → ObjectId ref to Student
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Student",
       },
     ],
     guide: {
-      type: String,
+      // Changed from String → ObjectId ref to Faculty
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Faculty",
       required: true,
     },
     status: {
@@ -28,11 +34,18 @@ const groupSchema = new mongoose.Schema(
     progress: {
       type: Number,
       default: 0,
+      min: 0,
+      max: 100,
+    },
+    academicYear: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "AcademicYear",
     },
   },
   { timestamps: true },
 );
 
-const Group = mongoose.model("Group", groupSchema);
+// Virtual so frontend gets 'id' = groupID when needed
+groupSchema.set("toJSON", { virtuals: true });
 
-export default Group;
+export default mongoose.model("Group", groupSchema);

@@ -2,12 +2,17 @@ import Admin from "../models/Admin.model.js";
 import Faculty from "../models/Faculty.model.js";
 import Student from "../models/Student.model.js";
 import jwt from "jsonwebtoken";
+import { hashPassword } from "../config/bcrypt.js";
 
 const generateToken = (id, role) => {
   return jwt.sign({ id, role }, process.env.JWT_SECRET || "fallback_secret", {
     expiresIn: "1d",
   });
 };
+
+const isBcryptHash = (value) =>
+  typeof value === "string" &&
+  /^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$/.test(value);
 
 export const login = async (req, res) => {
   const { email, password, role } = req.body;
@@ -28,7 +33,16 @@ export const login = async (req, res) => {
       return res.status(404).json({ message: "User not found." });
     }
 
-    const isMatch = await user.comparePassword(password);
+    let isMatch = await user.comparePassword(password);
+
+    // Backward compatibility for legacy seeded data where password was stored in plain text.
+    // On first successful login, migrate it to a bcrypt hash.
+    if (!isMatch && !isBcryptHash(user.password) && user.password === password) {
+      user.password = await hashPassword(password);
+      await user.save();
+      isMatch = true;
+    }
+
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid credentials." });
     }

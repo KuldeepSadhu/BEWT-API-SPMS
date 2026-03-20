@@ -1,8 +1,15 @@
 import Group from "../models/Group.model.js";
+import { ensureSeedData } from "../scripts/seedFromDummyData.js";
 
 export const getGroups = async (req, res) => {
   try {
-    const groups = await Group.find();
+    await ensureSeedData();
+    const groups = await Group.find()
+      .populate("project", "title description department remarks")
+      .populate("students", "name email rollNumber department year status")
+      .populate("guide", "name email department designation expertise")
+      .populate("academicYear", "year status");
+
     res.status(200).json({ success: true, groups });
   } catch (error) {
     res.status(500).json({ message: error.message });
