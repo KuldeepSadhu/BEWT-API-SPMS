@@ -4,6 +4,9 @@ export const dummyStudents = [
   { name: "Mike Ross", rollNumber: "CS2021012", email: "mike@example.com", department: "Computer Science", year: "Third Year", status: "Active" },
   { name: "Rachel Zane", rollNumber: "IT2021018", email: "rachel@example.com", department: "Information Technology", year: "Final Year", status: "Active" },
   { name: "Harvey Specter", rollNumber: "CS2021025", email: "harvey@example.com", department: "Computer Science", year: "Final Year", status: "Inactive" },
+  { name: "Nina Patel", rollNumber: "CS2021031", email: "nina@example.com", department: "Computer Science", year: "Final Year", status: "Active" },
+  { name: "Arjun Mehta", rollNumber: "IT2021037", email: "arjun@example.com", department: "Information Technology", year: "Third Year", status: "Active" },
+  { name: "Priya Nair", rollNumber: "CS2021042", email: "priya@example.com", department: "Computer Science", year: "Third Year", status: "Active" },
 ];
 
 export const dummyFaculty = [
