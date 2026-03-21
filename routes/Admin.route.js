@@ -3,6 +3,7 @@ import {
   getDashboardStats,
   getRecentProposals,
   getAllStudents,
+  createStudent,
   getAllFaculty,
   getAllStaff,
   getAllProjects,
@@ -19,6 +20,7 @@ router.use(protect, authorize("admin"));
 router.get("/stats", getDashboardStats);
 router.get("/proposals/recent", getRecentProposals);
 router.get("/students", getAllStudents);
+router.post("/students", createStudent);
 router.get("/faculty", getAllFaculty);
 router.get("/staff", getAllStaff);
 router.get("/projects", getAllProjects);

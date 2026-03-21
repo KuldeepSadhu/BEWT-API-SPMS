@@ -58,6 +58,78 @@ export const getAllStudents = async (req, res) => {
   }
 };
 
+export const createStudent = async (req, res) => {
+  try {
+    const {
+      name,
+      email,
+      password,
+      rollNumber,
+      department,
+      year,
+      status = "Active",
+      designation = "",
+      expertise = "",
+    } = req.body;
+
+    if (!name || !email || !password || !rollNumber || !department || !year) {
+      return res.status(400).json({
+        success: false,
+        message: "name, email, password, rollNumber, department and year are required.",
+      });
+    }
+
+    const normalizedEmail = String(email).trim().toLowerCase();
+    const normalizedRollNumber = String(rollNumber).trim();
+    const normalizedStatus = status === "Inactive" ? "Inactive" : "Active";
+
+    const existingStudent = await Student.findOne({
+      $or: [{ email: normalizedEmail }, { rollNumber: normalizedRollNumber }],
+    });
+
+    if (existingStudent) {
+      return res.status(409).json({
+        success: false,
+        message: "Student with this email or roll number already exists.",
+      });
+    }
+
+    const createdStudent = await Student.create({
+      name: String(name).trim(),
+      email: normalizedEmail,
+      password: String(password),
+      rollNumber: normalizedRollNumber,
+      department: String(department).trim(),
+      year: String(year).trim(),
+      status: normalizedStatus,
+      designation: String(designation || "").trim(),
+      expertise: String(expertise || "").trim(),
+      role: "student",
+    });
+
+    const studentResponse = createdStudent.toObject();
+    delete studentResponse.password;
+
+    return res.status(201).json({
+      success: true,
+      message: "Student created successfully.",
+      student: studentResponse,
+    });
+  } catch (error) {
+    if (error?.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: "Duplicate student record found.",
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to create student.",
+    });
+  }
+};
+
 export const getAllFaculty = async (req, res) => {
   try {
     await ensureSeedData();
