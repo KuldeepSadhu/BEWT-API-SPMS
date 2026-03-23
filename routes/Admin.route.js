@@ -4,6 +4,8 @@ import {
   getRecentProposals,
   getAllStudents,
   createStudent,
+  deleteStudent,
+  createFaculty,
   getAllFaculty,
   getAllStaff,
   getAllProjects,
@@ -21,8 +23,11 @@ router.get("/stats", getDashboardStats);
 router.get("/proposals/recent", getRecentProposals);
 router.get("/students", getAllStudents);
 router.post("/students", createStudent);
+router.delete("/students/:id", deleteStudent);
 router.get("/faculty", getAllFaculty);
+router.post("/faculty", createFaculty);
 router.get("/staff", getAllStaff);
+router.post("/staff", createFaculty);
 router.get("/projects", getAllProjects);
 router.get("/config/master", getMasterConfigs);
 

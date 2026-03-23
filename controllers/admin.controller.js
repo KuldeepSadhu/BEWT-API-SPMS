@@ -1,17 +1,14 @@
 import Student from "../models/Student.model.js";
 import Faculty from "../models/Faculty.model.js";
-import Staff from "../models/Staff.model.js";
 import Project from "../models/Project.model.js";
 import Group from "../models/Group.model.js";
 import AcademicYear from "../models/AcademicYear.model.js";
 import ProjectType from "../models/ProjectType.model.js";
 import Meeting from "../models/Meeting.model.js";
 import Submission from "../models/Submssion.model.js";
-import { ensureSeedData } from "../scripts/seedFromDummyData.js";
 
 export const getDashboardStats = async (req, res) => {
   try {
-    await ensureSeedData();
     const totalProjects = await Project.countDocuments();
     const pendingApprovals = await Project.countDocuments({
       status: "Pending",
@@ -35,7 +32,6 @@ export const getDashboardStats = async (req, res) => {
 
 export const getRecentProposals = async (req, res) => {
   try {
-    await ensureSeedData();
     const recentProposals = await Project.find()
       .populate("student", "name department")
       .populate("faculty", "name department")
@@ -50,7 +46,6 @@ export const getRecentProposals = async (req, res) => {
 
 export const getAllStudents = async (req, res) => {
   try {
-    await ensureSeedData();
     const students = await Student.find().select("-password");
     res.status(200).json({ success: true, students });
   } catch (error) {
@@ -130,9 +125,95 @@ export const createStudent = async (req, res) => {
   }
 };
 
+export const deleteStudent = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const deletedStudent = await Student.findByIdAndDelete(id).select("-password");
+
+    if (!deletedStudent) {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found.",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Student deleted successfully.",
+      student: deletedStudent,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to delete student.",
+    });
+  }
+};
+
+export const createFaculty = async (req, res) => {
+  try {
+    const {
+      name,
+      email,
+      password,
+      department,
+      designation = "",
+      expertise = "",
+    } = req.body;
+
+    if (!name || !email || !password || !department) {
+      return res.status(400).json({
+        success: false,
+        message: "name, email, password and department are required.",
+      });
+    }
+
+    const normalizedEmail = String(email).trim().toLowerCase();
+    const existingFaculty = await Faculty.findOne({ email: normalizedEmail });
+
+    if (existingFaculty) {
+      return res.status(409).json({
+        success: false,
+        message: "Faculty with this email already exists.",
+      });
+    }
+
+    const createdFaculty = await Faculty.create({
+      name: String(name).trim(),
+      email: normalizedEmail,
+      password: String(password),
+      department: String(department).trim(),
+      designation: String(designation || "").trim(),
+      expertise: String(expertise || "").trim(),
+      role: "faculty",
+    });
+
+    const facultyResponse = createdFaculty.toObject();
+    delete facultyResponse.password;
+
+    return res.status(201).json({
+      success: true,
+      message: "Faculty created successfully.",
+      faculty: facultyResponse,
+    });
+  } catch (error) {
+    if (error?.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: "Duplicate faculty record found.",
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to create faculty.",
+    });
+  }
+};
+
 export const getAllFaculty = async (req, res) => {
   try {
-    await ensureSeedData();
     const faculty = await Faculty.find().select("-password");
     res.status(200).json({ success: true, faculty });
   } catch (error) {
@@ -142,8 +223,7 @@ export const getAllFaculty = async (req, res) => {
 
 export const getAllStaff = async (req, res) => {
   try {
-    await ensureSeedData();
-    const staff = await Staff.find().select("-password");
+    const staff = await Faculty.find().select("-password");
     res.status(200).json({ success: true, staff });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -152,7 +232,6 @@ export const getAllStaff = async (req, res) => {
 
 export const getAllProjects = async (req, res) => {
   try {
-    await ensureSeedData();
     const projects = await Project.find()
       .populate("student", "name rollNumber department")
       .populate("faculty", "name department")
@@ -166,10 +245,9 @@ export const getAllProjects = async (req, res) => {
 
 export const getMasterConfigs = async (req, res) => {
   try {
-    await ensureSeedData();
     const academicYears = await AcademicYear.find();
     const projectTypes = await ProjectType.find();
-    const staff = await Staff.find().select("-password");
+    const staff = await Faculty.find().select("-password");
     res.status(200).json({ success: true, academicYears, projectTypes, staff });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -178,7 +256,6 @@ export const getMasterConfigs = async (req, res) => {
 
 export const getPublicStudents = async (req, res) => {
   try {
-    await ensureSeedData();
     const students = await Student.find().select("-password").sort({ createdAt: 1 });
     res.status(200).json({ success: true, data: students });
   } catch (error) {
@@ -188,8 +265,7 @@ export const getPublicStudents = async (req, res) => {
 
 export const getPublicStaff = async (req, res) => {
   try {
-    await ensureSeedData();
-    const staff = await Staff.find().select("-password").sort({ createdAt: 1 });
+    const staff = await Faculty.find().select("-password").sort({ createdAt: 1 });
     res.status(200).json({ success: true, data: staff });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -198,7 +274,6 @@ export const getPublicStaff = async (req, res) => {
 
 export const getPublicProjectTypes = async (req, res) => {
   try {
-    await ensureSeedData();
     const projectTypes = await ProjectType.find().sort({ createdAt: 1 });
     res.status(200).json({ success: true, data: projectTypes });
   } catch (error) {
@@ -208,7 +283,6 @@ export const getPublicProjectTypes = async (req, res) => {
 
 export const getPublicAcademicYears = async (req, res) => {
   try {
-    await ensureSeedData();
     const academicYears = await AcademicYear.find().sort({ startDate: -1 });
     res.status(200).json({ success: true, data: academicYears });
   } catch (error) {
@@ -218,7 +292,6 @@ export const getPublicAcademicYears = async (req, res) => {
 
 export const getPublicMeetings = async (req, res) => {
   try {
-    await ensureSeedData();
     const meetings = await Meeting.find()
       .populate({
         path: "group",
@@ -238,7 +311,6 @@ export const getPublicMeetings = async (req, res) => {
 
 export const getPublicSubmissions = async (req, res) => {
   try {
-    await ensureSeedData();
     const submissions = await Submission.find()
       .populate("student", "name rollNumber department")
       .populate("project", "title department status")
